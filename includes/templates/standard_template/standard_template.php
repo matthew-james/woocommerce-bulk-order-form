@@ -31,6 +31,53 @@ class WCBulkOrderForm_Standard_Template {
         add_action( 'wp', array($this,'process_bulk_order_form') );
 		add_action('init', array( &$this, 'register_script'));
 		add_action('wp_footer', array( &$this, 'print_script'));
+
+		//functions for custom prices
+		add_action( 'woocommerce_add_to_cart', array( $this,  'add_to_cart_hook' ) );
+		add_action( 'woocommerce_before_calculate_totals', array($this, 'add_custom_price' ) );
+	}
+
+	public function add_to_cart_hook($key)
+	{
+		global $woocommerce;
+		foreach ($woocommerce->cart->get_cart() as $cart_item_key => $values)
+		{
+			//get the price that matches the product_id row
+			$product_id = $values['product_id'];
+			$index = array_search($product_id, $_POST['wcbulkorderid']);
+
+			if (!isset($_POST['wcbulkorderprice'][$index])) {
+				return $key;
+			}
+
+			$price = $_POST['wcbulkorderprice'][$index];
+
+			//sanitize the price
+			$thousands_sep  = wp_specialchars_decode( stripslashes( get_option( 'woocommerce_price_thousand_sep' ) ), ENT_QUOTES );
+			$decimal_sep = stripslashes( get_option( 'woocommerce_price_decimal_sep' ) );
+			$price = str_replace($thousands_sep, '', $price);
+			$price = str_replace($decimal_sep, '.', $price);
+			$price = woocommerce_format_total($price);
+
+			//save the price to the session
+			$values['data']->set_price($price);
+			$woocommerce->session->__set($key .'_named_price', $price);
+		}
+		return $key;
+	}
+
+	public function add_custom_price( $cart_object ) {
+
+		global $woocommerce;
+
+		foreach ( $cart_object->cart_contents as $key => $value ) {
+
+			$named_price = $woocommerce->session->__get($key .'_named_price');
+
+			if ($named_price) {
+				$value['data']->price = $named_price;
+			}
+		}
 	}
 
 	/**
