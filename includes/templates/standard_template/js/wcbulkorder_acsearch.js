@@ -1,5 +1,5 @@
 jQuery(document).ready(function ($){
-	
+
 	var acs_action = 'myprefix_autocompletesearch';
 	//WCBulkOrder.aftertypequantity
 	//WCBulkOrder.nodatafound
@@ -15,10 +15,10 @@ jQuery(document).ready(function ($){
 				$.getJSON(WCBulkOrder.url+'?callback=?&action='+acs_action+'&category='+WCBulkOrder.category+'&included='+WCBulkOrder.included+'&excluded='+WCBulkOrder.excluded+'&_wpnonce='+WCBulkOrder.search_products_nonce, req, response);
 			},
 			select: function(event, ui) {
-				
+
 				var $input = $(this);
 				var $quantityInput = ($input).parent().siblings().find(".wcbulkorderquantity");
-				var $displayPrice = $('.wcbulkorderprice', $input.parent().parent());
+				var $displayPrice = ($input).parent().siblings().find(".wcbulkorderprice");
 				var $ProdID = $('.wcbulkorderid', $input.parent().parent());
 				$quantityInput.attr("placeholder", "Enter Quantity");
 				$ProdID.val(ui.item.id);
@@ -30,10 +30,10 @@ jQuery(document).ready(function ($){
 					else {
 						var total = 0;
 					}
-					$displayPrice.html(symbol + '<span>'+total.toFixed(2)+'</span>');
+					$displayPrice.val(total.toFixed(2));
 					$('.wcbulkorderpricetotal').html(symbol + "0.00");
 					calculateTotal();
-					
+
 				});
 			},
 			minLength: 2,
@@ -49,19 +49,20 @@ jQuery(document).ready(function ($){
 				if ((ui.content == null) || (ui.content === 0)){
 					var $input = $(this);
 					var $quantityInput = ($input).parent().siblings().find(".wcbulkorderquantity");
-					var $displayPrice = $('.wcbulkorderprice', $input.parent().parent());
+					var $displayPrice = ($input).parent().siblings().find(".wcbulkorderprice");
 					$input.val("");
 					$input.attr("placeholder", "No Products Found");
-					$displayPrice.html("");
+					$displayPrice.val("");
 					$quantityInput.val("");
 					calculateTotal();
 				}
 			},
 			change: function (ev, ui) {
-                if (!ui.item) {			
+                if (!ui.item) {
                     $(this).val("");
 					$(this).attr("placeholder", "Please Select a Product");
-				}	
+					$(this).parent().siblings().find('.wcbulkorderprice').val('');
+				}
             }
 		}).each(function(){
 			if (WCBulkOrder.display_images === 'true') {
@@ -69,23 +70,34 @@ jQuery(document).ready(function ($){
 					return $( "<li>" )
 					.append( "<a>" + "<img class='wcbof_autocomplete_img' src='" + item.imgsrc + "' />" + item.label+ "</a>" )
 					.appendTo( ul );
-				} 
+				}
 			} else {
 				return;
 			}
 		});
 	}
-	
+
 	function calculateTotal() {
 		var sum = 0;
-		$(".wcbulkorderprice span").each(function() {
-			var $item = +$(this).text();
+		$(".wcbulkorderprice").each(function() {
+			var $item = parseFloat($(this).val());
 			if( $item > 0) {
 				sum += $item;
-				$('.wcbulkorderpricetotal').html(window.symbol + sum.toFixed(2));
+				if (sum) {
+					$('.wcbulkorderpricetotal').html(window.symbol + parseFloat(sum).toFixed(2));
+				}
 			}
-		});	
+		});
 	}
+
+	$('.wcbulkorderprice').on('blur', function() {
+		var item = $(this).parent().siblings().find('input.wcbulkorderproduct');
+		if (item.val() == '') {
+			$(this).val('');
+		} else {
+			calculateTotal();
+		}
+	});
 
 	$("input.wcbulkorderproduct").click(autocomplete);
 	$("button.wcbulkordernewrow").live('click', function() {
@@ -100,5 +112,5 @@ jQuery(document).ready(function ($){
 		autocomplete();
 		return false;
 	});
-	
+
 });

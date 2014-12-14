@@ -21,30 +21,30 @@ class WCBulkOrderForm_Standard_Template {
 			$this->options = get_option('wcbulkorderform_standard_template');
 		}
 		$standard_template_settings = new WCBulkOrderForm_Settings_Standard_Template();
-		
+
 		add_shortcode('wcbulkorder', array( &$this, 'wc_bulk_order_form' ) );
-		
+
 		// Functions to deal with the AJAX request - one for logged in users, the other for non-logged in users.
 		add_action( 'wp_ajax_myprefix_autocompletesearch', array( &$this, 'myprefix_autocomplete_suggestions' ));
-		add_action( 'wp_ajax_nopriv_myprefix_autocompletesearch', array( &$this, 'myprefix_autocomplete_suggestions' ));	
+		add_action( 'wp_ajax_nopriv_myprefix_autocompletesearch', array( &$this, 'myprefix_autocomplete_suggestions' ));
 		add_action( 'wp_print_styles', array( &$this, 'load_styles' ), 0 );
         add_action( 'wp', array($this,'process_bulk_order_form') );
 		add_action('init', array( &$this, 'register_script'));
 		add_action('wp_footer', array( &$this, 'print_script'));
 	}
-	
+
 	/**
 	 * Load additional classes and functions
 	 */
 	public function includes() {
 		include_once( 'standard_template_options.php' );
 	}
-	
+
 	/**
 	 * Load CSS
 	 */
 	public function load_styles() {
-		
+
 		if (empty($this->options['no_load_css'])) {
 			$autocomplete = file_exists( get_stylesheet_directory() . '/jquery-ui.css' )
 			? get_stylesheet_directory_uri() . '/jquery-ui.css'
@@ -52,17 +52,17 @@ class WCBulkOrderForm_Standard_Template {
 
 			wp_register_style( 'wcbulkorder-jquery-ui', $autocomplete, array(), '', 'all' );
 		}
-		
+
 		$css = file_exists( get_stylesheet_directory() . '/wcbulkorderform.css' )
 			? get_stylesheet_directory_uri() . '/wcbulkorderform.css'
 			: plugins_url( '/css/wcbulkorderform.css', __FILE__ );
-			
+
 		wp_register_style( 'wcbulkorderform', $css, array(), '', 'all' );
 	}
 
 	/**
 	 * Load JS
-	 */   
+	 */
 	static function register_script() {
 		$options = get_option('wcbulkorderform_standard_template');
 		wp_register_script('wcbulkorder_acsearch', plugins_url( '/js/wcbulkorder_acsearch.js' , __FILE__ ), array('jquery','jquery-ui-autocomplete'),null,true);
@@ -82,7 +82,7 @@ class WCBulkOrderForm_Standard_Template {
 		wp_enqueue_style( 'wcbulkorder-jquery-ui' );
 		wp_enqueue_style( 'wcbulkorderform' );
 	}
-	
+
 	function process_bulk_order_form() {
         if(isset($_POST['wcbulkorderproduct'])) {
             global $woocommerce;
@@ -90,6 +90,7 @@ class WCBulkOrderForm_Standard_Template {
 			$prod_name = $_POST['wcbulkorderproduct'];
 			$prod_quantity = $_POST['wcbulkorderquantity'];
 			$prod_id = $_POST['wcbulkorderid'];
+			$prod_price = $_POST['wcbulkorderprice'];
 			$attributes = '';
 			$i = 0;
 			foreach($prod_id as $key => $value) {
@@ -104,14 +105,14 @@ class WCBulkOrderForm_Standard_Template {
             	}
                 $woocommerce->cart->add_to_cart($product_id,$prod_quantity[$key],$variation_id,$attributes,null);
 			}
-			
+
 		}
     }
 
 	/**
 	 * Create Bulk Order Form Shortcode
 	 * Source: http://wordpress.stackexchange.com/questions/53280/woocommerce-add-a-product-to-cart-programmatically-via-js-or-php
-	*/ 
+	*/
 	public function wc_bulk_order_form ($atts){
 		global $woocommerce;
 		self::$add_script = true;
@@ -131,7 +132,7 @@ class WCBulkOrderForm_Standard_Template {
 		$html = '';
 		$items = '';
 		$cart_url = $woocommerce->cart->get_cart_url();
-		
+
 		if (!empty($_POST['wcbulkorderid'])) {
 			$quantity_check = array_filter($_POST['wcbulkorderquantity']);
 			if (empty($quantity_check)){
@@ -162,7 +163,7 @@ class WCBulkOrderForm_Standard_Template {
 			}
 			wc_print_notices();
 		}
-		
+
 		$html = '<form action="" method="post" id="BulkOrderForm" category="'.$category.'" included="'.$include.'" excluded="'.$exclude.'">';
 		$html .= <<<HTML
 
@@ -190,7 +191,9 @@ HTML;
 					</td>
 HTML2;
 					if($price == 'true'){
-					$html .= '<td style="width: 20%;text-align:center;color: green" class="wcbulkorderprice"></td>';
+					$html .= '<td style="width: 20%">
+						<input type="text" name="wcbulkorderprice[]" class="wcbulkorderprice" style="width: 100%" />
+					</td>';
 					}
 					$html .= <<<HTML7
 					<input type="hidden" name="wcbulkorderid[]" class="wcbulkorderid" value="" />
@@ -199,7 +202,7 @@ HTML7;
 			}
 		$html .= <<<HTML3
 			</tbody>
-		</table>	
+		</table>
 		<table class="wcbulkorderformtable">
 			<tbody>
 HTML3;
@@ -207,16 +210,16 @@ HTML3;
 				$html .= <<<HTML4
 				<tr class="wcbulkorderformtr">
 					<td style="width: 60%">
-						
+
 					</td>
 					<td style="width: 20%">
 HTML4;
 						$html .= __( 'Total Price:' , 'wcbulkorderform' );
 					$html .= <<<HTML6
 					</td>
-					
+
 					<td style="width: 20%;text-align:center;color: green" class="wcbulkorderpricetotal"></td>
-					
+
 				</tr>
 HTML6;
 				}
@@ -229,7 +232,7 @@ HTML6;
 						elseif (($add_rows == 'true') && ($price != 'true')) {
 						$html .='<button class="wcbulkordernewrow">'.__( 'Add Row' , 'wcbulkorderform' ).'</button>';
 						}
-					
+
 					$html .='</td>';
 					$html .='<td style="width: 20%"><input type="submit" value="'.__( 'Add To Cart' , 'wcbulkorderform' ).'" name="submit" /></td>';
 					$html .= <<<HTML5
@@ -239,7 +242,7 @@ HTML6;
 		</form>
 HTML5;
 		return $html;
-		
+
 	}
 
 	function myprefix_autocomplete_suggestions(){
@@ -255,7 +258,7 @@ HTML5;
 		if (empty($term)) die();
 		if(!empty($category)){
 			if ( is_numeric( $term ) ) {
-			
+
 				if (($search_by == 2) || ($search_by == 4)){
 					$products1 = array(
 						'post_type'         => array ('product', 'product_variation'),
@@ -273,7 +276,7 @@ HTML5;
 							),
 						),
 					);
-					
+
 					$products2 = array(
 						'post_type'     	=> array ('product', 'product_variation'),
 						'post_status'       => array('publish'),
@@ -343,7 +346,7 @@ HTML5;
 					$products = array_unique(array_merge( get_posts( $products1 ), get_posts( $products2 ), get_posts( $products3 ), get_posts( $products4 ) ));
 				}
 			} else {
-			
+
 				if (($search_by == 1) || ($search_by == 4)){
 					$products1 = array(
 						'post_type'    		=> array ('product', 'product_variation'),
@@ -386,7 +389,7 @@ HTML5;
 						),
 					);
 				}
-			
+
 				if($search_by == 1) {
 					$products = array_unique(array_merge(get_posts( $products1 ) ));
 				} elseif($search_by == 3) {
@@ -398,7 +401,7 @@ HTML5;
 		}
 		else {
 			if ( is_numeric( $term ) ) {
-			
+
 				if (($search_by == 2) || ($search_by == 4)){
 					$products1 = array(
 						'post_type'         => array ('product', 'product_variation'),
@@ -409,7 +412,7 @@ HTML5;
 						'post__not_in'		=> $excluded_products,
 						'post__in'			=> $included_products
 					);
-					
+
 					$products2 = array(
 						'post_type'     	=> array ('product', 'product_variation'),
 						'post_status'       => array('publish'),
@@ -458,7 +461,7 @@ HTML5;
 					$products = array_unique(array_merge( get_posts( $products1 ), get_posts( $products2 ), get_posts( $products3 ), get_posts( $products4 ) ));
 				}
 			} else {
-			
+
 				if (($search_by == 1) || ($search_by == 4)){
 					$products1 = array(
 						'post_type'    		=> array ('product', 'product_variation'),
@@ -487,7 +490,7 @@ HTML5;
 						'post__in'			=> $included_products
 					);
 				}
-			
+
 				if($search_by == 1) {
 					$products = array_unique(array_merge(get_posts( $products1 ) ));
 				} elseif($search_by == 3) {
@@ -496,11 +499,11 @@ HTML5;
 					$products = array_unique(array_merge( get_posts( $products1 ), get_posts( $products2 ) ));
 				}
 			}
-		}			
-		
+		}
+
 		// JSON encode and echo
 		// Initialise suggestions array
-		
+
 		global $post, $woocommerce, $product;
 		$suggestions = '';
 		foreach ($products as $prod){
@@ -508,7 +511,7 @@ HTML5;
 			$post_type = get_post_type($prod);
 			$child_args = array('post_parent' => $prod, 'post_type' => 'product_variation');
 			$children = get_children( $child_args );
-			
+
 			if(('product' == $post_type) && empty($children)) {
 				$product = get_product($prod);
 					$id = $product->id;
@@ -544,7 +547,7 @@ HTML5;
 			      				$value = $term->name;
 			      			}
 				        }
-						$attr_name = $name;                       
+						$attr_name = $name;
 						$attr_value = $value;
 						$attr_value = str_replace('-', ' ', $value);
 						if($this->options['attribute_style'] === 'true'){
@@ -576,7 +579,7 @@ HTML5;
 						$img = apply_filters( 'woocommerce_placeholder_img_src', WC_Bulk_Order_Form_Compatibility::WC()->plugin_url() . '/assets/images/placeholder.png' );
 					}
 			}
-			
+
 			if($hide_product == 'false'){
 				$symbol = get_woocommerce_currency_symbol();
 				$symbol = html_entity_decode($symbol, ENT_COMPAT, 'UTF-8');
@@ -635,7 +638,7 @@ HTML5;
 		// Don't forget to exit!
 		exit;
 	}
-	
+
 }
 /*
 class Register_Standard_Template {
