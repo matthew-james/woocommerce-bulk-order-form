@@ -80,7 +80,7 @@ jQuery(document).ready(function ($){
 			if( $item > 0) {
 				sum += $item;
 				if (sum) {
-					$('.wcbulkorderpricetotal').html('$' + parseFloat(sum).toFixed(2));
+					$('.wcbulkorderpricetotal').html(window.symbol + parseFloat(sum).toFixed(2));
 				}
 			}
 		});
