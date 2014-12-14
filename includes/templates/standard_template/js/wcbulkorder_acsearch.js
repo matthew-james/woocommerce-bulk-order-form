@@ -65,14 +65,10 @@ jQuery(document).ready(function ($){
 				}
             }
 		}).each(function(){
-			if (WCBulkOrder.display_images === 'true') {
-				$(this).data("ui-autocomplete")._renderItem = function (ul, item) {
-					return $( "<li>" )
-					.append( "<a>" + "<img class='wcbof_autocomplete_img' src='" + item.imgsrc + "' />" + item.label+ "</a>" )
-					.appendTo( ul );
-				}
-			} else {
-				return;
+			$(this).data("ui-autocomplete")._renderItem = function (ul, item) {
+				return $( "<li>" )
+				.append( "<a>" + "<img class='wcbof_autocomplete_img' src='" + item.imgsrc + "' />" + item.label+ "</a>" )
+				.appendTo( ul );
 			}
 		});
 	}
@@ -108,7 +104,7 @@ jQuery(document).ready(function ($){
 	});
 	$("button.wcbulkordernewrowprice").live('click', function() {
 		var $totalinput = $("tr:last").html();
-		$("tbody.wcbulkorderformtbody").append('<tr class="wcbulkorderformtr"><td style="width: 60%"><i class="bulkorder_spinner"></i><input type="text" name="wcbulkorderproduct[]" class="wcbulkorderproduct" style="width: 100%"></td><td style="width: 20%"><input type="text" name="wcbulkorderquantity[]" class="wcbulkorderquantity" style="width: 100%"></td><td style="width: 20%;text-align:center;color: green" class="wcbulkorderprice"></td><input type="hidden" name="wcbulkorderid[]" class="wcbulkorderid" value=""></tr>');
+		$("tbody.wcbulkorderformtbody").append('<tr class="wcbulkorderformtr"><td style="width: 60%"><i class="bulkorder_spinner"></i><input type="text" name="wcbulkorderproduct[]" class="wcbulkorderproduct" style="width: 100%"></td><td style="width: 20%"><input type="text" name="wcbulkorderquantity[]" class="wcbulkorderquantity" style="width: 100%"></td><td style="width: 20%"><input type="text" name="wcbulkorderprice[]" class="wcbulkorderprice" style="width: 100%" /></td><input type="hidden" name="wcbulkorderid[]" class="wcbulkorderid" value=""></tr>');
 		autocomplete();
 		return false;
 	});

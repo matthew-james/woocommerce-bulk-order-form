@@ -249,11 +249,13 @@ HTML2;
 					$html .= <<<HTML7
 					<input type="hidden" name="wcbulkorderid[]" class="wcbulkorderid" value="" />
 				</tr>
+
 HTML7;
 			}
 		$html .= <<<HTML3
 			</tbody>
 		</table>
+
 		<table class="wcbulkorderformtable">
 			<tbody>
 HTML3;
