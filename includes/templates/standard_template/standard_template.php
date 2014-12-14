@@ -52,6 +52,10 @@ class WCBulkOrderForm_Standard_Template {
 
 			$price = $_POST['wcbulkorderprice'][$index];
 
+			if (isset($_POST['wcbulkorderquantity'][$index])) {
+				$price = $price / $_POST['wcbulkorderquantity'][$index];
+			}
+
 			//sanitize the price
 			$thousands_sep  = wp_specialchars_decode( stripslashes( get_option( 'woocommerce_price_thousand_sep' ) ), ENT_QUOTES );
 			$decimal_sep = stripslashes( get_option( 'woocommerce_price_decimal_sep' ) );
