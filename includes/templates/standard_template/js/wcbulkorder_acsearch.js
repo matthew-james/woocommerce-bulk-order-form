@@ -57,6 +57,13 @@ jQuery(document).ready(function ($){
 					calculateTotal();
 				}
 			},
+			change: function (ev, ui) {
+                if (!ui.item) {
+                    $(this).val("");
+					$(this).attr("placeholder", "Please Select a Product");
+					$(this).parent().siblings().find('.wcbulkorderprice').val('');
+				}
+            }
 		}).each(function(){
 			$(this).data("ui-autocomplete")._renderItem = function (ul, item) {
 				return $( "<li>" )
