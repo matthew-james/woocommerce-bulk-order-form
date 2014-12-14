@@ -39,6 +39,7 @@ class WCBulkOrderForm_Standard_Template {
 
 	public function add_to_cart_hook($key)
 	{
+		die(var_dump($_POST));
 		global $woocommerce;
 		foreach ($woocommerce->cart->get_cart() as $cart_item_key => $values)
 		{
