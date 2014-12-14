@@ -77,11 +77,9 @@ jQuery(document).ready(function ($){
 		var sum = 0;
 		$(".wcbulkorderprice").each(function() {
 			var $item = parseFloat($(this).val());
-			if( $item > 0) {
-				sum += $item;
-				if (sum) {
-					$('.wcbulkorderpricetotal').html(window.symbol + parseFloat(sum).toFixed(2));
-				}
+			sum += $item;
+			if (sum) {
+				$('.wcbulkorderpricetotal').html(window.symbol + parseFloat(sum).toFixed(2));
 			}
 		});
 	}
