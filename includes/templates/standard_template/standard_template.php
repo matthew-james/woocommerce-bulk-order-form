@@ -42,12 +42,18 @@ class WCBulkOrderForm_Standard_Template {
 		global $woocommerce;
 		foreach ($woocommerce->cart->get_cart() as $cart_item_key => $values)
 		{
-			//get the price that matches the product_id row
 			$product_id = $values['product_id'];
-			$index = array_search($product_id, $_POST['wcbulkorderid']);
+
+			$bulk_order_id = $_POST['wcbulkorderid'];
+
+			if (empty($product_id) || empty($bulk_order_id)) {
+				break;
+			}
+
+			$index = array_search($product_id, $bulk_order_id);
 
 			if (!isset($_POST['wcbulkorderprice'][$index])) {
-				return $key;
+				break;
 			}
 
 			$price = $_POST['wcbulkorderprice'][$index];
