@@ -34,7 +34,8 @@ class WCBulkOrderForm_Standard_Template {
 
 		//functions for custom prices
 		add_action( 'woocommerce_add_to_cart', array( $this,  'add_to_cart_hook' ) );
-		add_action( 'woocommerce_before_calculate_totals', array($this, 'add_custom_price' ) );
+		add_action( 'woocommerce_before_calculate_totals', array( $this, 'add_custom_price' ) );
+		add_action( 'woocommerce_checkout_order_processed', array( $this, 'unset_custom_price') );
 	}
 
 	public function add_to_cart_hook($key)
@@ -42,9 +43,9 @@ class WCBulkOrderForm_Standard_Template {
 		global $woocommerce;
 		foreach ($woocommerce->cart->get_cart() as $cart_item_key => $values)
 		{
-			$product_id = $values['product_id'];
+			$product_id = (isset($values['product_id']) ? $values['product_id'] : false);
 
-			$bulk_order_id = $_POST['wcbulkorderid'];
+			$bulk_order_id = (isset($_POST['wcbulkorderid']) ? $_POST['wcbulkorderid'] : false);
 
 			if (empty($product_id) || empty($bulk_order_id)) {
 				break;
@@ -67,11 +68,11 @@ class WCBulkOrderForm_Standard_Template {
 			$decimal_sep = stripslashes( get_option( 'woocommerce_price_decimal_sep' ) );
 			$price = str_replace($thousands_sep, '', $price);
 			$price = str_replace($decimal_sep, '.', $price);
-			$price = woocommerce_format_total($price);
+			$price = wc_format_decimal($price);
 
 			//save the price to the session
 			$values['data']->set_price($price);
-			$woocommerce->session->__set($key .'_named_price', $price);
+			$woocommerce->session->__set($key . '_named_price', $price);
 		}
 		return $key;
 	}
@@ -82,10 +83,26 @@ class WCBulkOrderForm_Standard_Template {
 
 		foreach ( $cart_object->cart_contents as $key => $value ) {
 
-			$named_price = $woocommerce->session->__get($key .'_named_price');
+			//the cart_item_data bulk_order key guarantees only bulk orders have a custom price applied
+			$named_price = $woocommerce->session->__get($key . '_named_price');
 
 			if ($named_price) {
 				$value['data']->price = $named_price;
+			}
+		}
+	}
+
+	//unset custom prices after successful checkout
+	public function unset_custom_price( $cart_object ) {
+
+		global $woocommerce;
+
+		foreach ( $cart_object->cart_contents as $key => $value ) {
+
+			$has_named_price = $woocommerce->session->__isset($key . '_named_price');
+
+			if ($has_named_price) {
+				$woocommerce->session->__unset($key . '_named_price');
 			}
 		}
 	}
@@ -160,7 +177,7 @@ class WCBulkOrderForm_Standard_Template {
                     $attributes = $product->get_variation_attributes();
 					$attributes = isset($attributes) ? $attributes : '';
             	}
-                $woocommerce->cart->add_to_cart($product_id,$prod_quantity[$key],$variation_id,$attributes,null);
+                $woocommerce->cart->add_to_cart( $product_id, $prod_quantity[$key], $variation_id, $attributes, array('bulk_order' => true) );
 			}
 
 		}
